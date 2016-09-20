@@ -1,0 +1,177 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>data</title>
+	<script src="d3.v3.min.js"></script>
+    	<style>
+			.canvas{
+				background-color: black;
+				fill: black;
+				margin: auto;
+				width: 50%;
+				border: 3px solid orange;
+				padding: 10px;
+			}
+			.text1{
+				font-family: sans-serif;
+				font-size: 11px;
+			}
+       		body {
+			
+				background-color: #000000;
+			}
+			.axis path,
+			.axis line{
+				fill: none;
+				stroke: white;
+				shape-rendering: crispEdges;
+			}
+			.axis text{
+				font-family: sans-serif;
+				font-size: 11px;
+				stroke: white;
+			}
+        </style>
+	</head>
+
+<body>
+  <script>
+	var width = 1000;
+	var height = 1000;
+	var pointSize = 4;
+	
+	var ls = d3.scale.linear()
+						.domain([0, 1])
+						.range([0, 200]);
+	
+	var colorS = d3.scale.linear()
+						.domain([0, 1])
+						.range(["black", "orange"]);
+						
+
+				
+				
+	d3.json("data.json", function(dataArray){
+	var canvas = d3.select("body")
+				   .append("svg")
+				   .attr("height", height)
+				   .attr("width", width)
+				   .attr('style', 'canvas');
+	
+			   
+	var maxx = d3.max(dataArray, function(d){return +d.x});
+	var maxy = d3.max(dataArray, function(d){return +d.y});
+	var maxval = d3.max(dataArray, function(d){return +d.val});
+	var minx = d3.min(dataArray, function(d){return +d.x});
+	var miny = d3.min(dataArray, function(d){return +d.y});
+	var minval = d3.min(dataArray, function(d){return +d.val});
+	
+	var posx = width/2 - (pointSize * maxx)/2;
+	var posy = 60;
+	
+	// add title text
+	var Title = canvas.append("text")
+					.attr("x", (width / 2))             
+					.attr("y", 40)
+					.attr("text-anchor", "middle")   
+    				.style("font-size", "48px")
+					.style('fill', 'white')
+					.style('stroke', 'white')
+					.text("A Brain Scan of Some Kind...");
+	
+	// add a border frame
+	var bgframe = canvas.append("rect")
+					.attr("height", (pointSize * maxy) + 8)
+					.attr("width", (pointSize * maxx) + 8)
+					.attr("x", posx - 3)
+					.attr("y", posy - 3)
+					.attr("fill", "none")
+					.attr("stroke-width", 3)
+					.attr("stroke", "white");
+	
+	// filter out 0 values (unnessisary to attept to display)
+	// -this should speed up rendering.
+	dataArray.filter(function(d){ return d > 0; });
+	
+	// add individual rectangles which make up the "pixels" of image			   
+	var bars = canvas.selectAll("rect")
+					 .data(dataArray)
+					 .enter()// binding data to the objects and create placeholders
+					 .append("rect")
+					 .attr("height", pointSize)
+					 .attr("width", pointSize)
+					 .attr("x", function(d){return pointSize*d.x + posx;})
+					 .attr("y", function(d){return pointSize*d.y + posy;})
+					 .attr("rx", 0)
+					 .attr("ry", 0)
+					 .attr("fill", function(d){return colorS(d.val);});
+					 
+
+////////////////////////// Draw the legend ////////////////////////////////
+
+//Append a defs (for definition) element to your SVG
+var defs = canvas.append("defs");
+
+var legendWidth = width * 0.6,
+	legendHeight = 20, 
+	legendposx = (width - legendWidth)/2,
+	legendposy = 860;
+	
+var legendls = d3.scale.linear()
+				.domain([0, 1])
+				.range([0, legendWidth]);
+						
+ var xAxis = d3.svg.axis()
+				.scale(legendls)
+				.orient("bottom")
+				.ticks(7);
+	
+//Append a linearGradient element to the defs and give it a unique id
+var linearGradient = defs.append("linearGradient")
+    			.attr("id", "linear-gradient")
+				.attr("x1", "0%")
+				.attr("y1", "0%")
+				.attr("x2", "100%")
+				.attr("y2", "0%");
+	
+//Set the color for the start (0%)
+linearGradient.append("stop") 
+				.attr("offset", "0%")   
+				.attr("stop-color", "black"); 
+
+//Set the color for the end (100%)
+linearGradient.append("stop") 
+				.attr("offset", "100%")   
+				.attr("stop-color", "orange"); 	
+
+				
+//Draw the rectangle and fill with gradient	
+canvas.append("rect")
+				.attr("width", legendWidth)
+				.attr("height", legendHeight)
+				.attr("x", legendposx)
+				.attr("y", legendposy)
+				.style("fill", "url(#linear-gradient)");	
+
+//Append title
+canvas.append("text")
+				.attr("class", "text1")
+				.attr("x", (width / 2))             
+				.attr("y", legendposy - 12)
+				.attr("text-anchor", "middle")   
+				.style("font-size", "14px")
+				.style('fill', 'white')
+				.style('stroke', 'white')
+				.text("Scan Intensity");			
+
+canvas.append("g")
+				.attr("class", "axis")
+				.attr("transform", "translate(" + legendposx + "," + legendposy + ")")
+				.call(xAxis)
+	
+	})					 
+  </script>
+</body>
+
+</html>

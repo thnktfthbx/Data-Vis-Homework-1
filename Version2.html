@@ -1,0 +1,153 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>data</title>
+	<script src="d3.v3.min.js"></script>
+    	<style>
+			.canvas{
+				background-color: black;
+				fill: black;
+				margin: auto;
+				width: 50%;
+				border: 3px solid orange;
+				padding: 10px;
+			}
+			.text1{
+				font-family: sans-serif;
+				font-size: 11px;
+			}
+       		body {
+			
+				background-color: #000000;
+			}
+			.axis path,
+			.axis line{
+				fill: none;
+				stroke: white;
+				shape-rendering: crispEdges;
+			}
+			.axis text{
+				font-family: sans-serif;
+				font-size: 11px;
+				stroke: white;
+			}
+        </style>
+	</head>
+
+<body>
+  <script>
+	var width = 1000;
+	var height = 1200;
+	var pointSize = 5;
+	
+	var ls = d3.scale.linear()
+						.domain([0, 1])
+						.range([0, 200]);
+	
+	var colorS = d3.scale.linear()
+						.domain([0, 1])
+						.range(["black", "orange"]);
+						
+
+				
+				
+	d3.json("data.json", function(dataArray){
+	var canvas = d3.select("body")
+				   .append("svg")
+				   .attr("height", height)
+				   .attr("width", width)
+				   .attr('style', 'canvas');
+	
+			   
+	var maxx = d3.max(dataArray, function(d){return +d.x});
+	var maxy = d3.max(dataArray, function(d){return +d.y});
+	var maxval = d3.max(dataArray, function(d){return +d.val});
+	var minx = d3.min(dataArray, function(d){return +d.x});
+	var miny = d3.min(dataArray, function(d){return +d.y});
+	var minval = d3.min(dataArray, function(d){return +d.val});
+	
+	var posx = width/2 - (pointSize * maxx)/2;
+	var posy = 60;
+	
+	var Title = canvas.append("text")
+					.attr("x", (width / 2))             
+					.attr("y", 40)
+					.attr("text-anchor", "middle")   
+    				.style("font-size", "48px")
+					.style('fill', 'white')
+					.style('stroke', 'white')
+					.text("A Brain Scan of Some Kind...");
+	
+	var bgframe = canvas.append("rect")
+					.attr("height", (pointSize * maxy) + 8)
+					.attr("width", (pointSize * maxx) + 8)
+					.attr("x", posx - 3)
+					.attr("y", posy - 3)
+					.attr("fill", "none")
+					.attr("stroke-width", 3)
+					.attr("stroke", "white");
+				   
+	var bars = canvas.selectAll("circle")
+					 .data(dataArray)
+					 .enter()// binding data to the objects and create placeholders
+					 .append("circle")
+					 .attr("r", function(d){return 4*d.val;})
+					 .attr("cx", function(d){return pointSize*d.x + posx;})
+					 .attr("cy", function(d){return pointSize*d.y + posy;})
+					 //.attr("fill", function(d){return colorS(d.val);});
+					 .attr("fill", "orange");
+					 
+
+////////////////////////// Draw the legend ////////////////////////////////
+
+
+var legendWidth = width * 0.6,
+	legendHeight = 20, 
+	legendposx = (width - legendWidth)/2,
+	legendposy = 1060,
+	keydata = [0, 0.2, 0.4, 0.6, 0.8, 1], 
+	keynum = 6,
+	keyspacing = 40;
+						
+var keycircles = canvas.selectAll("ellipse")
+			.data(keydata)
+			.enter()
+			.append("ellipse")
+			.attr("rx", function(d){return 4*d;})
+			.attr("ry", function(d){return 4*d;})
+			.attr("cx", function(d, i){return width/2 + keyspacing*(i-keynum/2) + 20;})
+			.attr("cy", legendposy)
+			.attr("fill", "orange")
+
+var keylabels = canvas.selectAll("text")
+			.data(keydata, function(d){return d;})
+			.enter()
+			.append("text")
+			.attr("class", "text1")
+			.attr("x", function(d, i){return width/2 + keyspacing*(i-keynum/2) + 20;})             
+			.attr("y", legendposy +15)
+			.attr("text-anchor", "middle")   
+			.style("font-size", "10px")
+			.style('fill', 'white')
+			.style('stroke', 'white')
+			.text(function(d){return "" + d + "";});
+
+//Append title
+canvas.append("text")
+				.attr("class", "text1")
+				.attr("x", (width / 2))             
+				.attr("y", legendposy - 12)
+				.attr("text-anchor", "middle")   
+				.style("font-size", "14px")
+				.style('fill', 'white')
+				.style('stroke', 'white')
+				.text("Scan Intensity");			
+
+
+	
+	})					 
+  </script>
+</body>
+
+</html>
